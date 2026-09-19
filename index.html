@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games by Bazzarn</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --card-hover: #334155;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            margin: 0;
+            color: var(--text-sub);
+            font-size: 0.95rem;
+        }
+
+        .search-container {
+            margin-bottom: 35px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #searchInput {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 18px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        #searchInput:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .game-card a {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 18px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.25s ease;
+        }
+
+        .game-card a:hover {
+            background: var(--card-hover);
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px -10px rgba(56, 189, 248, 0.3);
+        }
+
+        .icon {
+            font-size: 26px;
+            margin-right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .game-title {
+            flex-grow: 1;
+        }
+
+        .badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 3px 8px;
+            border-radius: 12px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .game-card a:hover .badge {
+            opacity: 1;
+            background: var(--accent);
+            color: var(--bg);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Games by Bazzarn</h1>
+            <p class="subtitle">Select a game below to play on GitHub Pages</p>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search games..." autocomplete="off">
+        </div>
+
+        <ul class="game-grid" id="gameGrid">
+            <!-- Newly Added Games -->
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Startrek-TNG" target="_blank"><span class="icon">🖖</span><span class="game-title">STARTREK TNG</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Parking-Master/" target="_blank"><span class="icon">🅿️</span><span class="game-title">Parking Master</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Air-Hockey/" target="_blank"><span class="icon">🏒</span><span class="game-title">Air Hockey _1-2 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/connect-4/" target="_blank"><span class="icon">🔴</span><span class="game-title">Connect four _1-2 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Bingo/" target="_blank"><span class="icon">🎰</span><span class="game-title">Bingo _1-4 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Noughts-Crosses/" target="_blank"><span class="icon">❌</span><span class="game-title">Noughts and Cross... _1-2 players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Table-tennis/" target="_blank"><span class="icon">🏓</span><span class="game-title">Table Tennis _1-2 players</span><span class="badge">Play</span></a></li>
+
+            <!-- Existing Games -->
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Draughts-Checkers/" target="_blank"><span class="icon">🔴</span><span class="game-title">Checkers _ 1-2 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Chess-_-1-2-Players/" target="_blank"><span class="icon">♟️</span><span class="game-title">Chess _ 1-2 players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Dots-and-boxes/" target="_blank"><span class="icon">🟦</span><span class="game-title">Dots and Boxes_1-2 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Memory-Pairs/" target="_blank"><span class="icon">🃏</span><span class="game-title">Memory Pairs _ 1-2 Players</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Pokmon-Snake/" target="_blank"><span class="icon">🐍</span><span class="game-title">Pokémon Grass Snake</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Gonk-Sudoku/" target="_blank"><span class="icon">🔢</span><span class="game-title">Gonk Sudoku</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Wack-a-mole/" target="_blank"><span class="icon">🔨</span><span class="game-title">Whack-A-Mole</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/HIGH-SPEED-RACER/" target="_blank"><span class="icon">🏎️</span><span class="game-title">High Speed Racer</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/EMILYS-HIGH-SPEED-RACER/" target="_blank"><span class="icon">🚗</span><span class="game-title">Emily's High Speed Racer</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Arcade-Shooting-Gallery/" target="_blank"><span class="icon">🎯</span><span class="game-title">Shooting Gallery</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Match-4-Challenge/" target="_blank"><span class="icon">🔗</span><span class="game-title">Match-4 Challenge</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Barios-Sudoku/" target="_blank"><span class="icon">👨🏻</span><span class="game-title">Bario's Sudoku</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Pokeblockblast/" target="_blank"><span class="icon">💥</span><span class="game-title">Pokéblock Blast</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/pong-invaders/" target="_blank"><span class="icon">👾</span><span class="game-title">Pong Invaders</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Pong-clone/" target="_blank"><span class="icon">❗</span><span class="game-title">Pong!</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Rubic-Sudoku/" target="_blank"><span class="icon">🧩</span><span class="game-title">Rubik Sudoku</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Flying-Emily/" target="_blank"><span class="icon">🧚‍♀️</span><span class="game-title">Flying Emily</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Ryans-bike-run/" target="_blank"><span class="icon">🚲</span><span class="game-title">Ryan's Bike Run</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Super-Match/" target="_blank"><span class="icon">⭐</span><span class="game-title">Super Match 3</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Tetris-clone/" target="_blank"><span class="icon">🧱</span><span class="game-title">Tetris</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Rubic-Tiles/" target="_blank"><span class="icon">🟩</span><span class="game-title">Rubik Cube Slider</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Mobile-pet/" target="_blank"><span class="icon">🐶</span><span class="game-title">Mobile Pet</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Darts-Score-Calculator/" target="_blank"><span class="icon">🎯</span><span class="game-title">Dartboard Calculator</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Bubble-Pop/" target="_blank"><span class="icon">🫧</span><span class="game-title">Bubble Pop</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Bubble-Wrap/" target="_blank"><span class="icon">🔵</span><span class="game-title">Bubble Wrap</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/nannys-visit-/" target="_blank"><span class="icon">👵</span><span class="game-title">Nanny's Visit</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Clothesline-Dash/" target="_blank"><span class="icon">👕</span><span class="game-title">Cloths Line Dash</span><span class="badge">Play</span></a></li>
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/SUPER-PLUMBER-BUBBLE/" target="_blank"><span class="icon">💧</span><span class="game-title">Super Plumber Bubble</span><span class="badge">Play</span></a></li>
+
+            <!-- Odyssey Puzzles Moved to the Bottom -->
+            <li class="game-card"><a href="https://bazzarn123-coder.github.io/Odyssey-Puzzles/" target="_blank"><span class="icon">🧩</span><span class="game-title">Odyssey Puzzles</span><span class="badge">Play</span></a></li>
+        </ul>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const gameCards = document.querySelectorAll('.game-card');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            gameCards.forEach(card => {
+                const title = card.querySelector('.game-title').textContent.toLowerCase();
+                if (title.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>ts = [
+                { x: 50, y: 50 },  { x: 180, y: 50 },  { x: 310, y: 50 },
+                { x: 50, y: 180 }, { x: 180, y: 180 }, { x: 310, y: 180 },
+                { x: 50, y: 340 }, { x: 180, y: 340 }, { x: 310, y: 340 }
+            ];
+
+            const slots = [...gridSlots].sort(() => rand() - 0.5);
+
+            const spawnPos = slots.pop();
+            const spawnRect = { x: spawnPos.x - CAR_W/2, y: spawnPos.y - CAR_H/2, w: CAR_W, h: CAR_H };
+
+            const numBays = Math.min(2 + Math.floor(levelIdx / 3), 5);
+            const bays = [];
+
+            for (let b = 0; b < numBays; b++) {
+                const pos = slots.pop();
+                const colorScheme = PALETTE[b % PALETTE.length];
+                bays.push({
+                    id: b,
+                    x: pos.x - goalW / 2,
+                    y: pos.y - goalH / 2,
+                    width: goalW,
+                    height: goalH,
+                    angle: 0,
+                    color: colorScheme,
+                    isTarget: (b === 0)
+                });
+            }
+
+            bays.sort(() => rand() - 0.5);
+            const targetBay = bays.find(b => b.isTarget);
+
+            const obstacles = [];
+            const bayRects = bays.map(b => ({ x: b.x, y: b.y, w: b.width, h: b.height }));
+
+            for (let b of bays) {
+                if (!b.isTarget) {
+                    const side = rand() > 0.5 ? -1 : 1;
+                    const frameX = b.x + (side === -1 ? -CAR_W - 6 : b.width + 6);
+                    const frameY = b.y + (b.height - CAR_H) / 2;
+                    const obsColor = CAR_COLORS[Math.floor(rand() * CAR_COLORS.length)];
+                    const frameRect = { x: frameX, y: frameY, w: CAR_W, h: CAR_H };
+
+                    if (frameX >= 10 && frameX + CAR_W <= 350 && frameY >= 10 && frameY + CAR_H <= 390) {
+                        let ok = !rectsOverlap(frameRect, spawnRect, 20);
+                        for (let br of bayRects) {
+                            if (rectsOverlap(frameRect, br, 6)) ok = false;
+                        }
+                        if (ok) obstacles.push({ x: frameX, y: frameY, color: obsColor });
+                    }
+                }
+            }
+
+            const obstacleCount = Math.min(4 + Math.floor(levelIdx / 2), 16);
+            let attempts = 0;
+
+            while (obstacles.length < obstacleCount && attempts < 150) {
+                attempts++;
+                const ox = 30 + Math.floor(rand() * 280);
+                const oy = 40 + Math.floor(rand() * 310);
+                const obsRect = { x: ox, y: oy, w: CAR_W, h: CAR_H };
+                const obsColor = CAR_COLORS[Math.floor(rand() * CAR_COLORS.length)];
+
+                let overlapsBay = false;
+                for (let br of bayRects) {
+                    if (rectsOverlap(obsRect, br, 12)) {
+                        overlapsBay = true;
+                        break;
+                    }
+                }
+
+                if (overlapsBay || rectsOverlap(obsRect, spawnRect, 25)) continue;
+
+                let overlapsOther = false;
+                for (let existing of obstacles) {
+                    const eRect = { x: existing.x, y: existing.y, w: CAR_W, h: CAR_H };
+                    if (rectsOverlap(obsRect, eRect, 8)) {
+                        overlapsOther = true;
+                        break;
+                    }
+                }
+
+                if (!overlapsOther) {
+                    obstacles.push({ x: ox, y: oy, color: obsColor });
+                }
+            }
+
+            return {
+                levelIndex: levelIdx,
+                spawn: { x: spawnPos.x, y: spawnPos.y, angle: 0 },
+                targetColor: targetBay.color,
+                bays: bays,
+                obstacles: obstacles
+            };
+        }
+
+        function buildLevelGrid() {
+            const grid = document.getElementById('level-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 200; i++) {
+                const isUnlocked = i <= maxLevelReached;
+                const btn = document.createElement('button');
+                btn.className = `py-2 rounded-lg font-bold text-xs border ${
+                    i === currentLevelIndex 
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400' 
+                    : isUnlocked 
+                        ? 'bg-slate-800 text-slate-300 border-slate-700 active:bg-slate-700'
+                        : 'bg-slate-900 text-slate-700 border-slate-800 cursor-not-allowed opacity-50'
+                }`;
+                btn.innerText = i + 1;
+                
+                if (isUnlocked) {
+                    btn.onclick = () => {
+                        closeLevelSelect();
+                        loadLevel(i);
+                        gameState = 'PLAYING';
+                        document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+                        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                        animationFrameId = requestAnimationFrame(gameLoop);
+                    };
+                }
+                grid.appendChild(btn);
+            }
+        }
+
+        function openLevelSelect() {
+            buildLevelGrid();
+            document.getElementById('level-modal').classList.remove('hidden');
+        }
+
+        function closeLevelSelect() {
+            document.getElementById('level-modal').classList.add('hidden');
+        }
+
+        function loadLevel(lvlIndex) {
+            currentLevelIndex = lvlIndex;
+            activeLevelData = generateLevel(currentLevelIndex);
+
+            car.x = activeLevelData.spawn.x;
+            car.y = activeLevelData.spawn.y;
+            car.angle = activeLevelData.spawn.angle;
+            car.speed = 0;
+            crashes = 0;
+            startTime = Date.now();
+
+            document.getElementById('level-indicator').innerText = `Level ${currentLevelIndex + 1} (Endless)`;
+            document.getElementById('crashes').innerText = `${crashes}/${maxCrashes}`;
+        }
+
+        function startGame() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            initAudio();
+            loadLevel(0);
+            gameState = 'PLAYING';
+            document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        
+        function resumeGame() {
+            initAudio();
+            const savedLevel = parseInt(localStorage.getItem('currentLevelIndex')) || 0;
+            loadLevel(savedLevel);
+            gameState = 'PLAYING';
+            document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            touchInputs.up = false;
+            touchInputs.down = false;
+            touchInputs.left = false;
+            touchInputs.right = false;
+            loadLevel(currentLevelIndex);
+            gameState = 'PLAYING';
+            document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function showOverlay(title, desc, btnText) {
+            const overlay = document.getElementById('overlay');
+            document.getElementById('overlay-title').innerText = title;
+            document.getElementById('overlay-desc').innerText = desc;
+            document.getElementById('overlay-btn').innerText = btnText;
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function handleOverlayButtonClick() {
+            initAudio();
+            if (gameState === 'MENU') {
+                startGame();
+            } else if (gameState === 'GAMEOVER') {
+                loadLevel(currentLevelIndex);
+                gameState = 'PLAYING';
+                document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(gameLoop);
+            } else if (gameState === 'LEVEL_CLEAR') {
+                loadLevel(currentLevelIndex + 1);
+                gameState = 'PLAYING';
+                document.getElementById('overlay').classList.add('opacity-0', 'pointer-events-none');
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function getCarCorners() {
+            const cos = Math.cos(car.angle);
+            const sin = Math.sin(car.angle);
+            const w2 = car.width / 2;
+            const h2 = car.height / 2;
+
+            const corners = [
+                { x: -w2, y: -h2 },
+                { x: w2, y: -h2 },
+                { x: w2, y: h2 },
+                { x: -w2, y: h2 }
+            ];
+
+            return corners.map(c => ({
+                x: car.x + (c.x * cos - c.y * sin),
+                y: car.y + (c.x * sin + c.y * cos)
+            }));
+        }
+
+        function checkCollision() {
+            const corners = getCarCorners();
+
+            for (let p of corners) {
+                if (p.x < 4 || p.x > canvas.width - 4 || p.y < 4 || p.y > canvas.height - 4) {
+                    return true;
+                }
+            }
+
+            for (let obs of activeLevelData.obstacles) {
+                for (let p of corners) {
+                    if (p.x >= obs.x && p.x <= obs.x + CAR_W && p.y >= obs.y && p.y <= obs.y + CAR_H) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function checkParkingGoal() {
+            const targetBay = activeLevelData.bays.find(b => b.isTarget);
+            if (!targetBay) return false;
+
+            const inBounds = car.x >= targetBay.x && car.x <= targetBay.x + targetBay.width &&
+                             car.y >= targetBay.y && car.y <= targetBay.y + targetBay.height;
+
+            if (!inBounds) return false;
+
+            let angleDiff = Math.abs(car.angle - targetBay.angle) % (Math.PI * 2);
+            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
+
+            const isStopped = Math.abs(car.speed) < 0.2;
+            return angleDiff < 0.45 && isStopped;
+        }
+
+        function update() {
+            if (gameState !== 'PLAYING') return;
+
+            if (touchInputs.up) {
+                car.speed += car.acceleration;
+                if (car.speed > car.maxSpeed) car.speed = car.maxSpeed;
+                playSound('engine');
+            } else if (touchInputs.down) {
+                car.speed -= car.acceleration;
+                if (car.speed < car.reverseSpeed) car.speed = car.reverseSpeed;
+            } else {
+                car.speed *= (1 - car.friction);
+            }
+
+            if (Math.abs(car.speed) > 0.05) {
+                const steerFactor = car.speed / car.maxSpeed;
+                if (touchInputs.left) car.angle -= car.steerSpeed * Math.sign(car.speed) * Math.min(Math.abs(steerFactor), 1);
+                if (touchInputs.right) car.angle += car.steerSpeed * Math.sign(car.speed) * Math.min(Math.abs(steerFactor), 1);
+            }
+
+            car.x += Math.sin(car.angle) * car.speed;
+            car.y -= Math.cos(car.angle) * car.speed;
+
+            if (checkCollision()) {
+                playSound('crash');
+                car.x -= Math.sin(car.angle) * car.speed * 2.5;
+                car.y += Math.cos(car.angle) * car.speed * 2.5;
+                car.speed = -car.speed * 0.3;
+                crashes++;
+                document.getElementById('crashes').innerText = `${crashes}/${maxCrashes}`;
+
+                if (crashes >= maxCrashes) {
+                    gameState = 'GAMEOVER';
+                    showOverlay('Crashed!', 'Too many collisions! Try again.', 'TRY AGAIN');
+                    return;
+                }
+            }
+
+            elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            document.getElementById('timer').innerText = `${elapsedTime}s`;
+
+            if (checkParkingGoal()) {
+                playSound('win');
+                gameState = 'LEVEL_CLEAR';
+                
+                // Auto-save progress
+                if (currentLevelIndex >= maxLevelReached) {
+                    maxLevelReached = currentLevelIndex + 1;
+                    localStorage.setItem('maxLevelReached', maxLevelReached);
+                }
+                localStorage.setItem('currentLevelIndex', currentLevelIndex + 1);
+
+                showOverlay(`Level ${currentLevelIndex + 1} Cleared!`, `Awesome parking! Time: ${elapsedTime}s`, 'NEXT LEVEL');
+                
+                // Make sure the resume button shows if they exit to the menu after clearing a level
+                document.getElementById('resume-btn').classList.remove('hidden');
+                document.getElementById('overlay-btn').innerText = 'RESTART';
+            }
+        }
+
+        function drawColoredCar(x, y, colorScheme) {
+            ctx.save();
+            ctx.translate(x + CAR_W / 2, y + CAR_H / 2);
+
+            ctx.fillStyle = colorScheme.main;
+            ctx.strokeStyle = colorScheme.stroke;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-CAR_W / 2, -CAR_H / 2, CAR_W, CAR_H, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-CAR_W / 2 + 3, -CAR_H / 2 + 7, CAR_W - 6, 9);
+            ctx.fillRect(-CAR_W / 2 + 4, -CAR_H / 2 + 22, CAR_W - 8, 11);
+
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(-CAR_W / 2 + 2, -CAR_H / 2, 4, 3);
+            ctx.fillRect(CAR_W / 2 - 6, -CAR_H / 2, 4, 3);
+
+            ctx.restore();
+        }
+
+        function drawRedPlayerCar() {
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            ctx.rotate(car.angle);
+
+            ctx.fillStyle = '#ef4444';
+            ctx.strokeStyle = '#b91c1c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-car.width / 2, -car.height / 2, car.width, car.height, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-car.width / 2 + 3, -car.height / 2 + 7, car.width - 6, 9);
+            ctx.fillRect(-car.width / 2 + 4, -car.height / 2 + 22, car.width - 8, 11);
+
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(-car.width / 2 + 2, -car.height / 2, 4, 3);
+            ctx.fillRect(car.width / 2 - 6, -car.height / 2, 4, 3);
+
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 30) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#64748b'; 
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+            if (!activeLevelData) return;
+
+            for (let bay of activeLevelData.bays) {
+                ctx.save();
+                ctx.translate(bay.x + bay.width / 2, bay.y + bay.height / 2);
+                ctx.rotate(bay.angle);
+
+                ctx.fillStyle = bay.color.fill;
+                ctx.strokeStyle = bay.color.border;
+                ctx.lineWidth = bay.isTarget ? 3 : 1.5;
+                ctx.setLineDash(bay.isTarget ? [6, 4] : [3, 3]);
+
+                ctx.fillRect(-bay.width / 2, -bay.height / 2, bay.width, bay.height);
+                ctx.strokeRect(-bay.width / 2, -bay.height / 2, bay.width, bay.height);
+
+                if (bay.isTarget) {
+                    ctx.fillStyle = bay.color.border;
+                    ctx.font = 'bold 10px system-ui';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('TARGET', 0, 4);
+                }
+
+                ctx.restore();
+            }
+
+            for (let obs of activeLevelData.obstacles) {
+                drawColoredCar(obs.x, obs.y, obs.color);
+            }
+
+            drawRedPlayerCar();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if (gameState === 'PLAYING') {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        loadLevel(0);
+        draw();
+    </script>
+</body>
+</html>
