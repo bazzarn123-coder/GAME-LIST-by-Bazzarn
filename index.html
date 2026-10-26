@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bird Sort Puzzle - Organic Branch Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Embedded SVG Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%234ea3d8'/><path d='M22 38 C18 30 22 18 30 14 C38 14 44 20 44 28 C44 38 36 50 28 50 C24 50 21 44 22 38 Z' fill='%23D35400'/><circle cx='38' cy='19' r='2.5' fill='%231C2833'/><path d='M43 20 L51 21 L42 24 Z' fill='%232C3E50'/></svg>">
+
+    <style>
+        * {
+            font-family: 'Outfit', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: url('game bg.jpg'), linear-gradient(180deg, #4ea3d8 0%, #78cced 50%, #cbebf8 100%);
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            transition: background 0.5s ease;
+        }
+
+        #clouds-container {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Fluffy Organic SVG Clouds */
+        .cloud-wrap {
+            position: absolute;
+            pointer-events: none;
+            animation: floatClouds linear infinite;
+            will-change: transform;
+        }
+
+        @keyframes floatClouds {
+            from { transform: translateX(-240px); }
+            to { transform: translateX(105vw); }
+        }
+
+        /* Vertical Tree Trunks on Screen Edges */
+        .tree-trunk-left, .tree-trunk-right {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 48px;
+            z-index: 5;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+        }
+        .tree-trunk-left { left: 0; }
+        .tree-trunk-right { right: 0; }
+
+        /* Delicate Thinner Wood Branch SVGs */
+        .wood-branch-svg {
+            width: 100%;
+            height: 20px;
+            filter: drop-shadow(0 3px 5px rgba(25, 12, 5, 0.3));
+            transition: filter 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+
+        .branch-container.selectable:hover .wood-branch-svg {
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7)) brightness(1.08);
+            cursor: pointer;
+        }
+
+        .branch-container.selected .wood-branch-svg {
+            filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.95)) brightness(1.15);
+        }
+
+        /* Hint Pulse Effect */
+        @keyframes hintPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.6)); }
+            50% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(234, 179, 8, 0.95)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.6)); }
+        }
+        .hint-pulse {
+            animation: hintPulse 0.8s infinite ease-in-out;
+        }
+
+        /* Flight Overlay Container */
+        .flying-bird-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            will-change: transform, left, top;
+        }
+
+        .wing-flapping {
+            animation: flapWing 0.14s infinite alternate ease-in-out;
+            transform-origin: 32px 32px;
+        }
+
+        @keyframes flapWing {
+            0% { transform: rotate(0deg) scaleY(1); }
+            100% { transform: rotate(-35deg) scaleY(0.5); }
+        }
+
+        .landing-bounce {
+            animation: bounceLanding 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bounceLanding {
+            0% { transform: translateY(-7px) scale(0.94, 1.1); }
+            60% { transform: translateY(2px) scale(1.04, 0.96); }
+            100% { transform: translateY(0) scale(1, 1); }
+        }
+
+        .bird-selected {
+            animation: hopSelect 0.36s infinite alternate ease-in-out;
+        }
+
+        @keyframes hopSelect {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body id="app-body" class="flex flex-col h-[100dvh] justify-between relative overflow-hidden select-none">
+
+    <!-- Splash Screen Intro Overlay using birds.jpg -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col justify-end items-center pb-12 transition-opacity duration-500" style="background-image: url('birds.jpg'); background-size: cover; background-position: center;">
+        <button onclick="game.startGame()" class="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xl px-10 py-4 rounded-full shadow-2xl border-4 border-white/90 transform active:scale-95 transition-all flex items-center space-x-3 drop-shadow-lg">
+            <i class="fa-solid fa-play"></i>
+            <span>START GAME</span>
+        </button>
+    </div>
+
+    <!-- Foreground / Background Clouds Container -->
+    <div id="clouds-container"></div>
+
+    <!-- Realistic Left & Right Tree Trunks attached to screen edges -->
+    <svg class="tree-trunk-left" preserveAspectRatio="none" viewBox="0 0 50 1000">
+        <defs>
+            <linearGradient id="trunkGradL" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#2c1206"/>
+                <stop offset="60%" stop-color="#4e220d"/>
+                <stop offset="100%" stop-color="#6e3113"/>
+            </linearGradient>
+        </defs>
+        <path d="M 0 0 L 50 0 L 48 1000 L 0 1000 Z" fill="url(#trunkGradL)"/>
+        <path d="M 12 0 Q 32 250 15 500 Q 38 750 20 1000" stroke="#1d0b03" stroke-width="6" fill="none" opacity="0.7"/>
+        <path d="M 30 0 Q 15 300 35 600 Q 12 850 32 1000" stroke="#60280f" stroke-width="4" fill="none" opacity="0.5"/>
+    </svg>
+
+    <svg class="tree-trunk-right" preserveAspectRatio="none" viewBox="0 0 50 1000">
+        <defs>
+            <linearGradient id="trunkGradR" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#6e3113"/>
+                <stop offset="40%" stop-color="#4e220d"/>
+                <stop offset="100%" stop-color="#2c1206"/>
+            </linearGradient>
+        </defs>
+        <path d="M 0 0 L 50 0 L 50 1000 L 2 1000 Z" fill="url(#trunkGradR)"/>
+        <path d="M 38 0 Q 18 250 35 500 Q 12 750 30 1000" stroke="#1d0b03" stroke-width="6" fill="none" opacity="0.7"/>
+        <path d="M 20 0 Q 35 300 15 600 Q 38 850 18 1000" stroke="#60280f" stroke-width="4" fill="none" opacity="0.5"/>
+    </svg>
+
+    <!-- Header Controls: 2-Row Compact Layout -->
+    <header class="w-full max-w-4xl mx-auto px-3 pt-3 pb-1 flex flex-col space-y-2 z-20 shrink-0" style="padding-top: max(0.75rem, env(safe-area-inset-top));">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-sm border border-white/60 flex items-center space-x-2">
+                    <i class="fa-solid fa-crow text-amber-600 text-base"></i>
+                    <div>
+                        <h1 class="text-[9px] uppercase tracking-wider text-slate-500 font-extrabold leading-none">Level</h1>
+                        <span id="level-display" class="text-base font-black text-slate-800 leading-none">1</span>
+                    </div>
+                </div>
+                <div class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-sm border border-white/60 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-coins text-amber-500 text-sm"></i>
+                    <span id="coin-display" class="text-sm font-black text-slate-800">100</span>
+                </div>
+            </div>
+
+            <button onclick="game.openShopModal()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-3.5 py-1.5 rounded-2xl shadow-md transition active:scale-95 flex items-center space-x-1.5 text-xs">
+                <i class="fa-solid fa-store"></i>
+                <span>Shop & Menu</span>
+            </button>
+        </div>
+
+        <div class="flex items-center justify-end space-x-1.5">
+            <button id="btn-sound" onclick="game.toggleSound()" title="Toggle Sound" class="w-9 h-9 bg-white/90 backdrop-blur-md hover:bg-white active:scale-90 transition rounded-xl shadow-sm border border-white/60 flex items-center justify-center text-slate-700">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-sm"></i>
+            </button>
+            <button id="btn-reset" onclick="game.resetLevel()" title="Restart Level" class="w-9 h-9 bg-white/90 backdrop-blur-md hover:bg-white active:scale-90 transition rounded-xl shadow-sm border border-white/60 flex items-center justify-center text-slate-700">
+                <i class="fa-solid fa-arrow-rotate-right text-sm"></i>
+            </button>
+            <button id="btn-level-select" onclick="game.openLevelSelect()" title="Select Level" class="w-9 h-9 bg-white/90 backdrop-blur-md hover:bg-white active:scale-90 transition rounded-xl shadow-sm border border-white/60 flex items-center justify-center text-slate-700">
+                <i class="fa-solid fa-list-ol text-sm"></i>
+            </button>
+            <button id="btn-undo" onclick="game.undo()" title="Undo Move" class="px-2.5 h-9 bg-white/90 backdrop-blur-md hover:bg-white active:scale-90 transition rounded-xl shadow-sm border border-white/60 flex items-center space-x-1 text-slate-700 disabled:opacity-40 disabled:pointer-events-none text-xs font-bold">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span id="undo-price-tag" class="text-[10px] text-amber-600">Free</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Arena: Symmetrical Two-Column Layout (Closer Spacing with Bottom Room) -->
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-1 flex items-center justify-between relative z-10 overflow-hidden min-h-0 pb-6">
+        <div id="left-branches" class="w-[42%] max-w-[320px] sm:max-w-[360px] flex flex-col justify-start space-y-1.5 sm:space-y-2 h-full py-1 pl-2"></div>
+        <div class="w-[16%] pointer-events-none flex items-center justify-center"></div>
+        <div id="right-branches" class="w-[42%] max-w-[320px] sm:max-w-[360px] flex flex-col justify-start space-y-1.5 sm:space-y-2 h-full py-1 pr-2"></div>
+    </main>
+
+    <!-- Footer Action Power-Up Toolbar -->
+    <footer class="w-full max-w-lg mx-auto z-20 flex justify-center px-4 shrink-0" style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 12px));">
+        <div class="bg-white/85 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-white/70 flex items-center space-x-2 w-full justify-around">
+            <button onclick="game.addExtraBranch()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 text-white font-bold py-2 px-3 rounded-xl shadow transition active:scale-95 flex flex-col items-center justify-center">
+                <div class="flex items-center space-x-1 text-xs">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>Branch</span>
+                </div>
+                <span id="branch-price-tag" class="text-[10px] text-emerald-200 font-semibold">25 🪙</span>
+            </button>
+
+            <button onclick="game.shuffleBoard()" class="flex-1 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 text-white font-bold py-2 px-3 rounded-xl shadow transition active:scale-95 flex flex-col items-center justify-center">
+                <div class="flex items-center space-x-1 text-xs">
+                    <i class="fa-solid fa-shuffle"></i>
+                    <span>Shuffle</span>
+                </div>
+                <span id="shuffle-price-tag" class="text-[10px] text-indigo-200 font-semibold">15 🪙</span>
+            </button>
+
+            <button onclick="game.triggerHint()" class="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 text-white font-bold py-2 px-3 rounded-xl shadow transition active:scale-95 flex flex-col items-center justify-center">
+                <div class="flex items-center space-x-1 text-xs">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Hint</span>
+                </div>
+                <span id="hint-price-tag" class="text-[10px] text-amber-200 font-semibold">10 🪙</span>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Flight Animation Overlay Layer -->
+    <div id="flight-overlay" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <!-- Power-Ups & Background Shop Modal (Splash Menu) -->
+    <div id="shop-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 p-4">
+        <div class="bg-white/95 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-white/80 transform scale-95 transition-transform duration-200 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-store text-amber-600"></i> Game Menu & Shop
+                </h2>
+                <button onclick="game.closeShopModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto space-y-4 pr-1 flex-1">
+                <button onclick="game.closeShopModal()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 text-white font-black py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 transition active:scale-95 flex items-center justify-center space-x-2 text-base">
+                    <i class="fa-solid fa-play text-lg"></i>
+                    <span>RESUME GAME</span>
+                </button>
+
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Power-Up Upgrades & Actions</h3>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-rotate-left text-amber-600"></i> Undo Move</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Revert last bird flight.</p>
+                            </div>
+                            <button onclick="game.undo()" class="mt-3 bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center space-x-1">
+                                <span>Use</span>
+                                <span id="modal-undo-cost" class="text-[10px] text-amber-200">(Free)</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-plus-circle text-emerald-600"></i> Extra Branch</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Add extra perch branch (1/level).</p>
+                            </div>
+                            <button onclick="game.addExtraBranch()" class="mt-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-1.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center space-x-1">
+                                <span>Buy</span>
+                                <span id="modal-branch-cost" class="text-[10px] text-emerald-200">(25 🪙)</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-shuffle text-indigo-600"></i> Shuffle</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Rescramble board birds.</p>
+                            </div>
+                            <button onclick="game.shuffleBoard()" class="mt-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center space-x-1">
+                                <span>Buy</span>
+                                <span id="modal-shuffle-cost" class="text-[10px] text-indigo-200">(15 🪙)</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-yellow-600"></i> Hint Move</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Highlight valid match.</p>
+                            </div>
+                            <button onclick="game.triggerHint()" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-xl text-xs transition active:scale-95 flex items-center justify-center space-x-1">
+                                <span>Buy</span>
+                                <span id="modal-hint-cost" class="text-[10px] text-yellow-100">(10 🪙)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Sky Background Themes</h3>
+                    <div id="theme-grid" class="grid grid-cols-2 gap-2.5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Select Modal -->
+    <div id="level-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 p-4">
+        <div class="bg-white/95 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-white/80 transform scale-95 transition-transform duration-200 flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Select Level
+                </h2>
+                <button onclick="game.closeLevelSelect()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div id="level-grid" class="grid grid-cols-5 gap-2.5 overflow-y-auto p-1 flex-1"></div>
+        </div>
+    </div>
+
+    <!-- Victory Celebration Modal -->
+    <div id="victory-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200 p-4">
+        <div class="bg-white/95 rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white/80 text-center transform scale-95 transition-transform duration-200">
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="text-2xl font-black text-slate-800 mb-1">Level Complete!</h2>
+            <p id="victory-reward-text" class="text-emerald-600 font-bold text-sm mb-4">+50 Coins Earned! 🪙</p>
+            
+            <div class="flex space-x-3">
+                <button onclick="game.resetLevel(); game.closeVictoryModal();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition active:scale-95">
+                    Replay
+                </button>
+                <button onclick="game.nextLevel(); game.closeVictoryModal();" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl shadow-lg shadow-emerald-500/30 transition active:scale-95">
+                    Next Level
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Audio Synthesizer & Core Game Script -->
+    <script>
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playChirp(birdType = 0) {
+                if (this.muted) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                const baseFreqs = [1500, 1100, 1850, 2200, 1300, 1950, 1650, 1400];
+                const freq = baseFreqs[birdType % baseFreqs.length] || 1500;
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.38, now + 0.05);
+                osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.13);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.14);
+            }
+
+            playFlap() {
+                if (this.muted) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.045;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(700, now);
+                filter.frequency.linearRampToValueAtTime(220, now + 0.045);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.045);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start(now);
+            }
+
+            playLanding() {
+                if (this.muted) return;
+                this.init();
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(230, now);
+                osc.frequency.exponentialRampToValueAtTime(85, now + 0.06);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.07);
+            }
+
+            playVictory() {
+                if (this.muted) return;
+                this.init();
+
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.09;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                });
+            }
+        }
+
+        /* 8 Detailed Songbird Species Models with Triangular Wings (Wide Base Joining the Bird) */
+        const BIRD_SPECIES = [
+            {
+                name: 'European Robin',
+                color: '#E67E22',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#6E4723" transform="rotate(15 32 34)"/>
+                            <path d="M 25 30 C 26 23, 37 23, 39 30 C 39 37, 25 38, 25 30 Z" fill="#D35400"/>
+                            <circle cx="34" cy="20" r="7" fill="#6E4723"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#1C2833"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#2C3E50"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#4A2810"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#854D0E"/>
+                                <polygon points="25,26 10,14 25,36" fill="#D35400" opacity="0.35"/>
+                                <polygon points="39,24 58,10 39,38" fill="#854D0E"/>
+                                <polygon points="39,26 54,14 39,36" fill="#D35400" opacity="0.35"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#4A2810" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#6E4723" />
+                        <path d="M 25 12 C 31 12 36 16 36 23 C 34 31 27 38 23 36 C 29 31 31 21 25 12 Z" fill="#D35400" />
+                        <path d="M 23 46 C 19 46 17 42 19 36 C 22 41 25 44 23 46 Z" fill="#EAECEE" />
+                        <circle cx="32" cy="16" r="2.2" fill="#1C2833" />
+                        <circle cx="32.7" cy="15.3" r="0.6" fill="#FFF" />
+                        <path d="M 37 17 L 45 18 L 36 21 Z" fill="#2C3E50" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#4A2810" />
+                            <path d="M 20 26 C 17 18 26 14 30 26 C 26 31 21 31 20 26 Z" fill="#854D0E" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Northern Cardinal',
+                color: '#C0392B',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#C0392B" transform="rotate(15 32 34)"/>
+                            <path d="M 31 12 C 34 6, 38 4, 40 9 C 39 16, 35 18, 31 12 Z" fill="#C0392B"/>
+                            <circle cx="34" cy="20" r="7" fill="#C0392B"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#1C2833"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#E67E22"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#7B241C"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#922B21"/>
+                                <polygon points="39,24 58,10 39,38" fill="#922B21"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 1 58 L 8 56 L 15 42 Z" fill="#7B241C" />
+                        <path d="M 18 36 C 14 25 18 13 25 6 C 28 2 30 1 31 6 C 34 13 38 18 38 26 C 38 35 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#C0392B" />
+                        <path d="M 29 13 C 33 15 37 18 35 23 C 31 24 28 22 29 17 Z" fill="#17202A" />
+                        <circle cx="31.5" cy="16" r="2" fill="#FFF" />
+                        <circle cx="31.5" cy="16" r="1.3" fill="#000" />
+                        <circle cx="32" cy="15.4" r="0.4" fill="#FFF" />
+                        <path d="M 35 17 L 45 18 L 34 21 Z" fill="#E67E22" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#922B21" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#4A235A" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#4A235A" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'American Goldfinch',
+                color: '#F1C40F',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#F1C40F" transform="rotate(15 32 34)"/>
+                            <path d="M 31 15 C 35 15, 38 18, 36 21 C 33 21, 31 18, 31 15 Z" fill="#17202A"/>
+                            <circle cx="34" cy="20" r="7" fill="#F1C40F"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#17202A"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#F5CBA7"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#17202A"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#17202A"/>
+                                <polygon points="39,24 58,10 39,38" fill="#17202A"/>
+                                <polygon points="24,26 12,16 23,34" fill="#FFF" opacity="0.85"/>
+                                <polygon points="40,26 52,16 41,34" fill="#FFF" opacity="0.85"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#17202A" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#F1C40F" />
+                        <path d="M 29 11 C 33 11 36 13 35 16 C 31 16 29 13 29 11 Z" fill="#17202A" />
+                        <circle cx="32" cy="16" r="2" fill="#17202A" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 36 17 L 44 18 L 35 20 Z" fill="#F5CBA7" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#17202A" />
+                            <path d="M 22 26 L 28 26 L 27 29 L 20 29 Z" fill="#FBFCFC" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#5D6D7E" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#5D6D7E" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Eastern Bluebird',
+                color: '#2980B9',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#2980B9" transform="rotate(15 32 34)"/>
+                            <path d="M 25 32 C 28 26, 36 26, 39 32 C 37 38, 27 38, 25 32 Z" fill="#BA4A00"/>
+                            <circle cx="34" cy="20" r="7" fill="#2980B9"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#1C2833"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#2C3E50"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#154360"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#1F618D"/>
+                                <polygon points="39,24 58,10 39,38" fill="#1F618D"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#154360" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#2980B9" />
+                        <path d="M 25 16 C 31 16 36 20 35 27 C 31 34 24 36 22 32 C 28 30 29 21 25 16 Z" fill="#BA4A00" />
+                        <circle cx="32" cy="16" r="2.1" fill="#1C2833" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 36 17 L 44 18 L 35 20 Z" fill="#2C3E50" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#1F618D" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Scarlet Tanager',
+                color: '#E74C3C',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#E74C3C" transform="rotate(15 32 34)"/>
+                            <circle cx="34" cy="20" r="7" fill="#E74C3C"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#17202A"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#F5CBA7"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#17202A"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#17202A"/>
+                                <polygon points="39,24 58,10 39,38" fill="#17202A"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#17202A" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#E74C3C" />
+                        <circle cx="32" cy="16" r="2.1" fill="#17202A" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 36 17 L 44 18 L 35 20 Z" fill="#F5CBA7" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#17202A" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#34495E" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#34495E" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Emerald Hummingbird',
+                color: '#16A085',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#16A085" transform="rotate(15 32 34)"/>
+                            <path d="M 25 32 C 28 26, 36 26, 39 32 C 37 38, 27 38, 25 32 Z" fill="#1ABC9C"/>
+                            <circle cx="34" cy="20" r="7" fill="#16A085"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#17202A"/>
+                            <path d="M 39 19 Q 45 20 52 21 L 39 23 Z" fill="#17202A"/>
+                            <path d="M 28 47 L 22 60 L 32 54 L 38 60 Z" fill="#0E6251"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 4,8 25,36" fill="#117A65"/>
+                                <polygon points="39,24 60,8 39,36" fill="#117A65"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 0 59 L 7 56 L 15 42 Z" fill="#0E6251" />
+                        <path d="M 13 40 L 4 60 L 10 57 L 16 42 Z" fill="#117A65" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#16A085" />
+                        <path d="M 25 16 C 31 16 36 20 34 26 C 29 31 24 33 22 30 C 28 28 29 20 25 16 Z" fill="#1ABC9C" />
+                        <circle cx="32" cy="16" r="2" fill="#17202A" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 35 17 Q 41 18 47 20 L 34 21 Z" fill="#17202A" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#117A65" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#C0392B" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#C0392B" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Purple Finch',
+                color: '#8E44AD',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#8E44AD" transform="rotate(15 32 34)"/>
+                            <circle cx="34" cy="20" r="7" fill="#8E44AD"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#17202A"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#F5CBA7"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#512E5F"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#512E5F"/>
+                                <polygon points="39,24 58,10 39,38" fill="#512E5F"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#512E5F" />
+                        <path d="M 18 36 C 14 26 18 14 25 11 C 32 11 38 16 38 24 C 38 34 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#8E44AD" />
+                        <circle cx="32" cy="16" r="2" fill="#17202A" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 36 17 L 44 18 L 35 20 Z" fill="#F5CBA7" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#512E5F" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#2C3E50" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            },
+            {
+                name: 'Cyan Jay',
+                color: '#3498DB',
+                renderSvg: (isFlapping = false, isFlyingAway = false) => {
+                    if (isFlyingAway) {
+                        return `
+                        <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-md">
+                            <ellipse cx="32" cy="34" rx="10" ry="14" fill="#3498DB" transform="rotate(15 32 34)"/>
+                            <path d="M 31 10 C 34 4, 38 2, 40 7 C 39 14, 35 16, 31 10 Z" fill="#3498DB"/>
+                            <circle cx="34" cy="20" r="7" fill="#3498DB"/>
+                            <circle cx="36" cy="18" r="1.5" fill="#17202A"/>
+                            <path d="M 39 19 L 46 20 L 39 23 Z" fill="#1B4F72"/>
+                            <path d="M 28 47 L 24 58 L 32 52 L 36 58 Z" fill="#1B4F72"/>
+                            <g class="${isFlapping ? 'wing-flapping' : ''}">
+                                <polygon points="25,24 6,10 25,38" fill="#2874A6"/>
+                                <polygon points="39,24 58,10 39,38" fill="#2874A6"/>
+                                <polygon points="24,26 12,16 23,34" fill="#FFF" opacity="0.85"/>
+                                <polygon points="40,26 52,16 41,34" fill="#FFF" opacity="0.85"/>
+                            </g>
+                        </svg>`;
+                    }
+                    return `
+                    <svg viewBox="0 0 48 60" class="w-full h-full drop-shadow-sm">
+                        <path d="M 11 40 L 2 58 L 9 56 L 15 42 Z" fill="#1B4F72" />
+                        <path d="M 18 36 C 14 25 18 13 25 6 C 28 3 30 2 31 6 C 33 11 38 16 38 26 C 38 35 31 46 23 46 C 19 46 17 41 18 36 Z" fill="#3498DB" />
+                        <circle cx="32" cy="16" r="2" fill="#17202A" />
+                        <circle cx="32.6" cy="15.4" r="0.5" fill="#FFF" />
+                        <path d="M 36 17 L 44 18 L 35 20 Z" fill="#1B4F72" />
+                        <g class="${isFlapping ? 'wing-flapping' : ''}">
+                            <path d="M 19 24 C 15 14 28 10 33 24 C 28 32 20 32 19 24 Z" fill="#2874A6" />
+                            <path d="M 21 26 L 27 26 L 25 29 L 20 29 Z" fill="#FFF" opacity="0.8" />
+                        </g>
+                        <path d="M 20 45 L 18 56 M 18 56 L 14 58 M 18 56 L 20 59" stroke="#1B4F72" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M 25 45 L 23 56 M 23 56 L 19 58 M 23 56 L 25 59" stroke="#1B4F72" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>`;
+                }
+            }
+        ];
+
+        const BACKGROUND_THEMES = [
+            { id: 'default', name: 'Default (Forest)', bgStyle: "url('game bg.jpg'), linear-gradient(180deg, #4ea3d8 0%, #78cced 50%, #cbebf8 100%)", cost: 0 },
+            { id: 'sunset', name: 'Golden Sunset', bgStyle: "linear-gradient(180deg, #d35400 0%, #e67e22 50%, #f39c12 100%)", cost: 100 },
+            { id: 'night', name: 'Magical Night', bgStyle: "linear-gradient(180deg, #1b2631 0%, #2c3e50 50%, #4a235a 100%)", cost: 150 },
+            { id: 'autumn', name: 'Autumn Twilight', bgStyle: "linear-gradient(180deg, #78281f 0%, #b03a2e 50%, #d98880 100%)", cost: 200 },
+            { id: 'aurora', name: 'Aurora Borealis', bgStyle: "linear-gradient(180deg, #0e6251 0%, #117a65 50%, #1f618d 100%)", cost: 250 },
+            { id: 'blossom', name: 'Cherry Blossom', bgStyle: "linear-gradient(180deg, #e8daef 0%, #f5b7b1 50%, #fadbd8 100%)", cost: 300 }
+        ];
+
+        class BirdSortGame {
+            constructor() {
+                this.sound = new SoundEngine();
+                this.currentLevel = 1;
+                this.branches = [];
+                this.selectedBranchIndex = null;
+                this.history = [];
+                this.maxLevelUnlocked = parseInt(localStorage.getItem('birdSort_maxLevel') || '1');
+                this.hasFiredVictoryConfetti = false;
+                this.branchBoughtThisLevel = false;
+                
+                this.coins = parseInt(localStorage.getItem('birdSort_coins') || '100');
+                this.powerupCounts = { undo: 0, branch: 0, shuffle: 0, hint: 0 };
+
+                this.equippedBg = localStorage.getItem('birdSort_equippedBg') || 'default';
+                this.unlockedBgs = JSON.parse(localStorage.getItem('birdSort_unlockedBgs') || '["default"]');
+
+                this.applyTheme(this.equippedBg);
+                this.initClouds();
+                this.loadLevel(this.currentLevel);
+                this.updateUIEconomy();
+            }
+
+            startGame() {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('opacity-0', 'pointer-events-none');
+                this.sound.init();
+            }
+
+            getCapacity(levelNum = this.currentLevel) {
+                if (levelNum >= 30) return 6;
+                if (levelNum >= 20) return 5;
+                return 4;
+            }
+
+            initClouds() {
+                const container = document.getElementById('clouds-container');
+                container.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'cloud-wrap';
+                    const w = 140 + Math.random() * 120;
+                    const h = 45 + Math.random() * 25;
+                    wrap.style.width = `${w}px`;
+                    wrap.style.height = `${h}px`;
+                    wrap.style.top = `${Math.random() * 75}%`;
+                    wrap.style.animationDuration = `${22 + Math.random() * 26}s`;
+                    wrap.style.animationDelay = `-${Math.random() * 25}s`;
+
+                    wrap.innerHTML = `
+                        <svg viewBox="0 0 160 70" class="w-full h-full drop-shadow-sm opacity-75">
+                            <path d="M 20 50 Q 10 50 10 40 Q 10 30 22 28 Q 28 15 45 15 Q 58 15 65 24 Q 75 18 90 20 Q 105 18 112 30 Q 125 30 128 42 Q 130 52 115 52 Z" fill="#FFFFFF" />
+                        </svg>
+                    `;
+                    container.appendChild(wrap);
+                }
+            }
+
+            applyTheme(bgId) {
+                this.equippedBg = bgId;
+                localStorage.setItem('birdSort_equippedBg', bgId);
+                const theme = BACKGROUND_THEMES.find(t => t.id === bgId) || BACKGROUND_THEMES[0];
+                const bodyEl = document.getElementById('app-body');
+                bodyEl.style.background = theme.bgStyle;
+                bodyEl.style.backgroundSize = 'cover';
+                bodyEl.style.backgroundPosition = 'center';
+            }
+
+            loadLevel(levelNum) {
+                this.currentLevel = levelNum;
+                this.selectedBranchIndex = null;
+                this.history = [];
+                this.hasFiredVictoryConfetti = false;
+                this.branchBoughtThisLevel = false;
+                this.powerupCounts = { undo: 0, branch: 0, shuffle: 0, hint: 0 };
+
+                document.getElementById('level-display').innerText = this.currentLevel;
+                document.getElementById('btn-undo').disabled = true;
+
+                const capacity = this.getCapacity(levelNum);
+
+                let numColors = 3;
+                if (levelNum >= 3) numColors = 4;
+                if (levelNum >= 5) numColors = 5;
+                if (levelNum >= 8) numColors = 6;
+                if (levelNum >= 12) numColors = 7;
+                if (levelNum >= 16) numColors = 8;
+
+                const totalBranches = numColors + 2;
+
+                let deck = [];
+                for (let colorId = 0; colorId < numColors; colorId++) {
+                    for (let i = 0; i < capacity; i++) {
+                        deck.push(colorId);
+                    }
+                }
+
+                this.shuffleArray(deck, levelNum * 829 + 17);
+
+                this.branches = [];
+                for (let i = 0; i < numColors; i++) {
+                    this.branches.push(deck.slice(i * capacity, (i + 1) * capacity));
+                }
+                for (let i = 0; i < totalBranches - numColors; i++) {
+                    this.branches.push([]);
+                }
+
+                this.render();
+                this.updateUIEconomy();
+            }
+
+            shuffleArray(array, seed) {
+                let m = array.length, t, i;
+                let pseudoRandom = () => {
+                    let x = Math.sin(seed++) * 10000;
+                    return x - Math.floor(x);
+                };
+                while (m) {
+                    i = Math.floor(pseudoRandom() * m--);
+                    t = array[m];
+                    array[m] = array[i];
+                    array[i] = t;
+                }
+            }
+
+            render() {
+                const leftContainer = document.getElementById('left-branches');
+                const rightContainer = document.getElementById('right-branches');
+
+                leftContainer.innerHTML = '';
+                rightContainer.innerHTML = '';
+
+                const total = this.branches.length;
+                const half = Math.ceil(total / 2);
+
+                this.branches.forEach((branchBirds, index) => {
+                    const isLeft = index < half;
+                    const branchEl = this.createBranchElement(index, branchBirds, isLeft);
+
+                    if (isLeft) {
+                        leftContainer.appendChild(branchEl);
+                    } else {
+                        rightContainer.appendChild(branchEl);
+                    }
+                });
+            }
+
+            createBranchElement(index, birds, isLeft) {
+                const capacity = this.getCapacity(this.currentLevel);
+                const container = document.createElement('div');
+                container.className = `branch-container ${isLeft ? 'branch-left' : 'branch-right'} w-full relative flex items-center h-16 sm:h-20 ${this.selectedBranchIndex === index ? 'selected' : ''} selectable`;
+                container.dataset.index = index;
+                container.onclick = () => this.handleBranchClick(index);
+
+                const woodSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                woodSvg.setAttribute("viewBox", "0 0 320 28");
+                woodSvg.setAttribute("preserveAspectRatio", "none");
+                woodSvg.setAttribute("class", `wood-branch-svg absolute bottom-0 ${isLeft ? 'left-0' : 'right-0'}`);
+
+                const gradId = `woodGrad_${index}`;
+
+                if (isLeft) {
+                    woodSvg.innerHTML = `
+                        <defs>
+                            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#8c4b27" />
+                                <stop offset="50%" stop-color="#6e371a" />
+                                <stop offset="100%" stop-color="#311406" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M 0 4 C 80 7, 180 5, 318 18 C 320 19, 318 22, 314 22 C 180 14, 80 16, 0 21 Z" fill="url(#${gradId})" />
+                        <path d="M 40 10 Q 48 7 56 12 Q 48 15 40 10 Z" fill="#3a1b0b" opacity="0.8" />
+                        <path d="M 180 12 Q 186 10 192 13 Q 186 16 180 12 Z" fill="#3a1b0b" opacity="0.7" />
+                        <path d="M 0 8 C 80 11, 180 9, 312 20" stroke="rgba(255,255,255,0.22)" stroke-width="1" fill="none" />
+                        <path d="M 305 17 Q 312 10 320 13 Q 315 19 305 17 Z" fill="#2ECC71" />
+                    `;
+                } else {
+                    woodSvg.innerHTML = `
+                        <defs>
+                            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#8c4b27" />
+                                <stop offset="50%" stop-color="#6e371a" />
+                                <stop offset="100%" stop-color="#311406" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M 320 4 C 240 7, 140 5, 2 18 C 0 19, 2 22, 6 22 C 140 14, 240 16, 320 21 Z" fill="url(#${gradId})" />
+                        <path d="M 280 10 Q 272 7 264 12 Q 272 15 280 10 Z" fill="#3a1b0b" opacity="0.8" />
+                        <path d="M 320 8 C 240 11, 140 9, 8 20" stroke="rgba(255,255,255,0.22)" stroke-width="1" fill="none" />
+                        <path d="M 15 17 Q 8 10 0 13 Q 5 19 15 17 Z" fill="#2ECC71" />
+                    `;
+                }
+
+                container.appendChild(woodSvg);
+
+                const birdsWrapper = document.createElement('div');
+                birdsWrapper.className = `absolute bottom-1.5 ${isLeft ? 'left-2' : 'right-2'} flex justify-start items-end h-14 ${isLeft ? 'flex-row' : 'flex-row-reverse'}`;
+
+                let slotSizeClass = "w-9 h-12 sm:w-11 sm:h-14 md:w-12 md:h-16 -mr-2.5 sm:-mr-3";
+                if (capacity === 6) {
+                    slotSizeClass = "w-9 h-12 sm:w-11 sm:h-14 md:w-12 md:h-16 -mr-3.5 sm:-mr-4";
+                }
+
+                for (let slot = 0; slot < capacity; slot++) {
+                    const slotDiv = document.createElement('div');
+                    slotDiv.className = `${slotSizeClass} relative flex items-center justify-center shrink-0 z-10 hover:z-20 transition-all`;
+                    slotDiv.dataset.slot = slot;
+
+                    if (slot < birds.length) {
+                        const birdType = birds[slot];
+                        const isTopBird = (slot === birds.length - 1);
+                        const isSelected = (this.selectedBranchIndex === index && isTopBird);
+
+                        const birdEl = document.createElement('div');
+                        birdEl.className = `${slotSizeClass.split(' ')[0]} ${slotSizeClass.split(' ')[1]} transition-all ${isSelected ? 'bird-selected' : ''}`;
+                        birdEl.innerHTML = BIRD_SPECIES[birdType].renderSvg(false, false);
+                        birdEl.id = `bird-${index}-${slot}`;
+
+                        if (!isLeft) {
+                            birdEl.style.transform = 'scaleX(-1)';
+                        }
+
+                        slotDiv.appendChild(birdEl);
+                    }
+
+                    birdsWrapper.appendChild(slotDiv);
+                }
+
+                container.appendChild(birdsWrapper);
+                return container;
+            }
+
+            handleBranchClick(index) {
+                if (this.selectedBranchIndex === null) {
+                    if (this.branches[index].length > 0) {
+                        this.selectedBranchIndex = index;
+                        const topBird = this.branches[index][this.branches[index].length - 1];
+                        this.sound.playChirp(topBird);
+                        this.render();
+                    }
+                    return;
+                }
+
+                if (this.selectedBranchIndex === index) {
+                    this.selectedBranchIndex = null;
+                    this.render();
+                    return;
+                }
+
+                const sourceIdx = this.selectedBranchIndex;
+                const destIdx = index;
+                const sourceBranch = this.branches[sourceIdx];
+                const destBranch = this.branches[destIdx];
+
+                if (sourceBranch.length === 0) {
+                    this.selectedBranchIndex = null;
+                    this.render();
+                    return;
+                }
+
+                const capacity = this.getCapacity(this.currentLevel);
+                const topBirdType = sourceBranch[sourceBranch.length - 1];
+                const isDestEmpty = destBranch.length === 0;
+                const isColorMatch = !isDestEmpty && destBranch[destBranch.length - 1] === topBirdType;
+                const hasSpace = destBranch.length < capacity;
+
+                if (hasSpace && (isDestEmpty || isColorMatch)) {
+                    let countToMove = 0;
+                    for (let i = sourceBranch.length - 1; i >= 0; i--) {
+                        if (sourceBranch[i] === topBirdType) {
+                            countToMove++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    const availableSpace = capacity - destBranch.length;
+                    const actualMoveCount = Math.min(countToMove, availableSpace);
+
+                    this.history.push(JSON.parse(JSON.stringify(this.branches)));
+                    document.getElementById('btn-undo').disabled = false;
+
+                    this.executeFlightAnimation(sourceIdx, destIdx, actualMoveCount);
+                } else {
+                    if (destBranch.length > 0) {
+                        this.selectedBranchIndex = destIdx;
+                        const newTop = destBranch[destBranch.length - 1];
+                        this.sound.playChirp(newTop);
+                    } else {
+                        this.selectedBranchIndex = null;
+                    }
+                    this.render();
+                }
+            }
+
+            executeFlightAnimation(sourceIdx, destIdx, count) {
+                this.selectedBranchIndex = null;
+
+                const birdType = this.branches[sourceIdx][this.branches[sourceIdx].length - 1];
+                let movedSoFar = 0;
+
+                const animateNextBird = () => {
+                    if (movedSoFar >= count) {
+                        this.render();
+                        this.checkBranchCompletions();
+                        return;
+                    }
+
+                    const srcSlot = this.branches[sourceIdx].length - 1;
+                    const destSlot = this.branches[destIdx].length;
+
+                    const srcEl = document.getElementById(`bird-${sourceIdx}-${srcSlot}`);
+                    const destBranchContainer = document.querySelectorAll('.branch-container')[destIdx];
+                    const destSlots = destBranchContainer ? destBranchContainer.querySelectorAll('[data-slot]') : null;
+                    const destSlotEl = destSlots ? destSlots[destSlot] : null;
+
+                    if (!srcEl || !destSlotEl) {
+                        this.branches[destIdx].push(this.branches[sourceIdx].pop());
+                        movedSoFar++;
+                        animateNextBird();
+                        return;
+                    }
+
+                    const srcRect = srcEl.getBoundingClientRect();
+                    const destRect = destSlotEl.getBoundingClientRect();
+
+                    srcEl.style.visibility = 'hidden';
+
+                    const flightOverlay = document.getElementById('flight-overlay');
+                    const flyer = document.createElement('div');
+                    flyer.className = 'flying-bird-container w-9 h-12 sm:w-11 sm:h-14 md:w-12 md:h-16';
+                    flyer.innerHTML = BIRD_SPECIES[birdType].renderSvg(true, false);
+
+                    const facingLeft = destRect.left < srcRect.left;
+                    if (facingLeft) {
+                        flyer.style.transform = 'scaleX(-1)';
+                    }
+
+                    flyer.style.left = `${srcRect.left}px`;
+                    flyer.style.top = `${srcRect.top}px`;
+                    flightOverlay.appendChild(flyer);
+
+                    this.branches[destIdx].push(this.branches[sourceIdx].pop());
+                    this.sound.playFlap();
+
+                    const startTime = performance.now();
+                    const duration = 280;
+                    const startX = srcRect.left;
+                    const startY = srcRect.top;
+                    const endX = destRect.left;
+                    const endY = destRect.top;
+                    const arcHeight = Math.min(Math.abs(endX - startX) * 0.35 + 30, 100);
+
+                    const step = (currentTime) => {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                        const currentX = startX + (endX - startX) * ease;
+                        const currentY = startY + (endY - startY) * ease - Math.sin(progress * Math.PI) * arcHeight;
+
+                        flyer.style.left = `${currentX}px`;
+                        flyer.style.top = `${currentY}px`;
+
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        } else {
+                            if (flightOverlay.contains(flyer)) {
+                                flightOverlay.removeChild(flyer);
+                            }
+                            this.sound.playLanding();
+                            this.render();
+                            const landedBirdEl = document.getElementById(`bird-${destIdx}-${destSlot}`);
+                            if (landedBirdEl) {
+                                landedBirdEl.classList.add('landing-bounce');
+                            }
+
+                            movedSoFar++;
+                            setTimeout(animateNextBird, 25);
+                        }
+                    };
+
+                    requestAnimationFrame(step);
+                };
+
+                animateNextBird();
+            }
+
+            checkBranchCompletions() {
+                const capacity = this.getCapacity(this.currentLevel);
+                let anyBranchClearing = false;
+                this.branches.forEach((branch, bIdx) => {
+                    if (branch.length === capacity) {
+                        const firstColor = branch[0];
+                        if (branch.every(color => color === firstColor)) {
+                            anyBranchClearing = true;
+                            this.triggerBranchFlyAway(bIdx);
+                        }
+                    }
+                });
+
+                if (!anyBranchClearing) {
+                    this.checkVictoryCondition();
+                }
+            }
+
+            triggerBranchFlyAway(branchIdx) {
+                const branchContainer = document.querySelectorAll('.branch-container')[branchIdx];
+                if (!branchContainer) {
+                    this.branches[branchIdx] = [];
+                    this.render();
+                    this.checkVictoryCondition();
+                    return;
+                }
+
+                const slotElements = branchContainer.querySelectorAll('[id^="bird-"]');
+                const startCoords = [];
+                slotElements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    startCoords.push({ x: rect.left, y: rect.top });
+                });
+
+                const birdsToFly = [...this.branches[branchIdx]];
+                this.branches[branchIdx] = [];
+                this.render();
+
+                const flightOverlay = document.getElementById('flight-overlay');
+                
+                const angles = [-155, -110, -70, -25, -135, -45];
+                this.shuffleArray(angles, Date.now());
+
+                birdsToFly.forEach((birdType, i) => {
+                    setTimeout(() => {
+                        const startPos = startCoords[i] || { x: window.innerWidth * 0.5, y: window.innerHeight * 0.5 };
+
+                        const flyer = document.createElement('div');
+                        flyer.className = 'flying-bird-container w-16 h-16 sm:w-20 sm:h-20';
+                        flyer.innerHTML = BIRD_SPECIES[birdType].renderSvg(true, true);
+                        
+                        flyer.style.left = `${startPos.x - 8}px`;
+                        flyer.style.top = `${startPos.y - 8}px`;
+                        flightOverlay.appendChild(flyer);
+
+                        this.sound.playChirp(birdType);
+
+                        const angleDeg = angles[i % angles.length];
+                        const angleRad = (angleDeg * Math.PI) / 180;
+                        const distance = 900 + Math.random() * 200;
+                        const targetX = startPos.x + Math.cos(angleRad) * distance;
+                        const targetY = startPos.y + Math.sin(angleRad) * distance;
+
+                        const startTime = performance.now();
+                        const duration = 3272;
+
+                        const flyStep = (currentTime) => {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const ease = progress * (2 - progress);
+
+                            const currX = startPos.x + (targetX - startPos.x) * ease;
+                            const currY = startPos.y + (targetY - startPos.y) * ease;
+                            const scale = 1 + progress * 0.25;
+                            const rotate = angleDeg * 0.2;
+
+                            flyer.style.left = `${currX}px`;
+                            flyer.style.top = `${currY}px`;
+                            flyer.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+                            flyer.style.opacity = `${1 - progress}`;
+
+                            if (progress < 1) {
+                                requestAnimationFrame(flyStep);
+                            } else {
+                                if (flightOverlay.contains(flyer)) {
+                                    flightOverlay.removeChild(flyer);
+                                }
+                            }
+                        };
+
+                        requestAnimationFrame(flyStep);
+
+                    }, i * 90);
+                });
+
+                setTimeout(() => {
+                    this.checkVictoryCondition();
+                }, 3500);
+            }
+
+            checkVictoryCondition() {
+                const capacity = this.getCapacity(this.currentLevel);
+                let allSolved = true;
+                this.branches.forEach(branch => {
+                    if (branch.length > 0) {
+                        if (branch.length < capacity || !branch.every(c => c === branch[0])) {
+                            allSolved = false;
+                        }
+                    }
+                });
+
+                if (allSolved && !this.hasFiredVictoryConfetti) {
+                    this.hasFiredVictoryConfetti = true;
+                    setTimeout(() => {
+                        this.sound.playVictory();
+                        this.fireConfetti();
+                        
+                        const reward = 30 + this.currentLevel * 5;
+                        this.coins += reward;
+                        localStorage.setItem('birdSort_coins', this.coins.toString());
+                        this.updateUIEconomy();
+
+                        document.getElementById('victory-reward-text').innerText = `+${reward} Coins Earned! 🪙`;
+                        this.openVictoryModal();
+
+                        if (this.currentLevel >= this.maxLevelUnlocked) {
+                            this.maxLevelUnlocked = this.currentLevel + 1;
+                            localStorage.setItem('birdSort_maxLevel', this.maxLevelUnlocked.toString());
+                        }
+                    }, 220);
+                }
+            }
+
+            fireConfetti() {
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            }
+
+            undo() {
+                const cost = this.getPowerUpCost('undo');
+                if (this.history.length === 0) return;
+
+                if (cost > 0) {
+                    if (this.coins < cost) {
+                        alert("Not enough coins for Undo!");
+                        return;
+                    }
+                    this.coins -= cost;
+                    this.powerupCounts.undo++;
+                }
+
+                this.branches = this.history.pop();
+                if (this.history.length === 0) {
+                    document.getElementById('btn-undo').disabled = true;
+                }
+                this.selectedBranchIndex = null;
+                this.render();
+                this.updateUIEconomy();
+            }
+
+            addExtraBranch() {
+                if (this.branchBoughtThisLevel) {
+                    alert("Only one extra branch is allowed to be bought per level!");
+                    return;
+                }
+
+                const cost = this.getPowerUpCost('branch');
+                if (this.branches.length >= 11) return;
+
+                if (this.coins < cost) {
+                    alert("Not enough coins to add a branch!");
+                    return;
+                }
+
+                this.coins -= cost;
+                this.powerupCounts.branch++;
+                this.branchBoughtThisLevel = true;
+
+                this.history.push(JSON.parse(JSON.stringify(this.branches)));
+                document.getElementById('btn-undo').disabled = false;
+                
+                const insertIndex = Math.min(5, Math.floor(this.branches.length / 2));
+                this.branches.splice(insertIndex, 0, []);
+
+                this.render();
+                this.updateUIEconomy();
+            }
+
+            shuffleBoard() {
+                const cost = this.getPowerUpCost('shuffle');
+                if (this.coins < cost) {
+                    alert("Not enough coins to shuffle!");
+                    return;
+                }
+
+                this.coins -= cost;
+                this.powerupCounts.shuffle++;
+
+                this.history.push(JSON.parse(JSON.stringify(this.branches)));
+                document.getElementById('btn-undo').disabled = false;
+
+                let allBirds = [];
+                this.branches.forEach(b => {
+                    allBirds.push(...b);
+                });
+
+                this.shuffleArray(allBirds, Date.now());
+
+                let birdIdx = 0;
+                this.branches.forEach((b, i) => {
+                    const count = b.length;
+                    b.length = 0;
+                    for (let c = 0; c < count; c++) {
+                        b.push(allBirds[birdIdx++]);
+                    }
+                });
+
+                this.selectedBranchIndex = null;
+                this.render();
+                this.updateUIEconomy();
+            }
+
+            triggerHint() {
+                const cost = this.getPowerUpCost('hint');
+                if (this.coins < cost) {
+                    alert("Not enough coins for Hint!");
+                    return;
+                }
+
+                const capacity = this.getCapacity(this.currentLevel);
+                let sourceFound = null;
+                let destFound = null;
+
+                for (let i = 0; i < this.branches.length; i++) {
+                    if (this.branches[i].length === 0) continue;
+                    const topBird = this.branches[i][this.branches[i].length - 1];
+
+                    for (let j = 0; j < this.branches.length; j++) {
+                        if (i === j) continue;
+                        const dest = this.branches[j];
+                        if (dest.length < capacity && (dest.length === 0 || dest[dest.length - 1] === topBird)) {
+                            sourceFound = i;
+                            destFound = j;
+                            break;
+                        }
+                    }
+                    if (sourceFound !== null) break;
+                }
+
+                if (sourceFound !== null && destFound !== null) {
+                    this.coins -= cost;
+                    this.powerupCounts.hint++;
+                    this.updateUIEconomy();
+
+                    const container = document.querySelectorAll('.branch-container')[sourceFound];
+                    if (container) {
+                        container.classList.add('hint-pulse');
+                        setTimeout(() => container.classList.remove('hint-pulse'), 2500);
+                    }
+                } else {
+                    alert("No valid moves found! Try resetting or shuffling.");
+                }
+            }
+
+            getPowerUpCost(type) {
+                const baseCosts = { undo: 0, branch: 25, shuffle: 15, hint: 10 };
+                const escalations = { undo: 5, branch: 15, shuffle: 10, hint: 5 };
+                return baseCosts[type] + (this.powerupCounts[type] * escalations[type]);
+            }
+
+            updateUIEconomy() {
+                document.getElementById('coin-display').innerText = this.coins;
+                localStorage.setItem('birdSort_coins', this.coins.toString());
+
+                const undoCost = this.getPowerUpCost('undo');
+                const branchCost = this.getPowerUpCost('branch');
+                const shuffleCost = this.getPowerUpCost('shuffle');
+                const hintCost = this.getPowerUpCost('hint');
+
+                document.getElementById('undo-price-tag').innerText = undoCost === 0 ? 'Free' : `${undoCost} 🪙`;
+                document.getElementById('branch-price-tag').innerText = `${branchCost} 🪙`;
+                document.getElementById('shuffle-price-tag').innerText = `${shuffleCost} 🪙`;
+                document.getElementById('hint-price-tag').innerText = `${hintCost} 🪙`;
+
+                document.getElementById('modal-undo-cost').innerText = undoCost === 0 ? '(Free)' : `(${undoCost} 🪙)`;
+                document.getElementById('modal-branch-cost').innerText = `(${branchCost} 🪙)`;
+                document.getElementById('modal-shuffle-cost').innerText = `(${shuffleCost} 🪙)`;
+                document.getElementById('modal-hint-cost').innerText = `(${hintCost} 🪙)`;
+            }
+
+            resetLevel() {
+                this.loadLevel(this.currentLevel);
+            }
+
+            toggleSound() {
+                this.sound.muted = !this.sound.muted;
+                const icon = document.getElementById('sound-icon');
+                icon.className = this.sound.muted ? "fa-solid fa-volume-xmark text-sm text-slate-400" : "fa-solid fa-volume-high text-sm text-slate-700";
+            }
+
+            openShopModal() {
+                const modal = document.getElementById('shop-modal');
+                const themeGrid = document.getElementById('theme-grid');
+                themeGrid.innerHTML = '';
+
+                BACKGROUND_THEMES.forEach(theme => {
+                    const isUnlocked = this.unlockedBgs.includes(theme.id);
+                    const isEquipped = this.equippedBg === theme.id;
+
+                    const card = document.createElement('div');
+                    card.className = `p-2.5 rounded-2xl border flex flex-col justify-between items-center text-center transition ${isEquipped ? 'border-amber-500 bg-amber-50/50 shadow-sm' : 'border-slate-200 bg-slate-50'}`;
+                    
+                    card.innerHTML = `
+                        <div class="w-full h-8 rounded-xl mb-2 shadow-inner" style="background: ${theme.bgStyle}"></div>
+                        <span class="text-xs font-bold text-slate-800">${theme.name}</span>
+                        <button class="mt-2 w-full py-1 rounded-xl text-[11px] font-bold transition active:scale-95 ${
+                            isEquipped 
+                                ? 'bg-amber-500 text-white' 
+                                : isUnlocked 
+                                    ? 'bg-slate-200 hover:bg-slate-300 text-slate-700' 
+                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                        }">
+                            ${isEquipped ? 'Equipped' : isUnlocked ? 'Equip' : `${theme.cost} 🪙`}
+                        </button>
+                    `;
+
+                    card.querySelector('button').onclick = () => {
+                        if (isEquipped) return;
+                        if (isUnlocked) {
+                            this.applyTheme(theme.id);
+                            this.openShopModal();
+                        } else {
+                            if (this.coins >= theme.cost) {
+                                this.coins -= theme.cost;
+                                this.unlockedBgs.push(theme.id);
+                                localStorage.setItem('birdSort_unlockedBgs', JSON.stringify(this.unlockedBgs));
+                                this.applyTheme(theme.id);
+                                this.updateUIEconomy();
+                                this.openShopModal();
+                            } else {
+                                alert("Not enough coins to buy this theme!");
+                            }
+                        }
+                    };
+
+                    themeGrid.appendChild(card);
+                });
+
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.remove('scale-95');
+            }
+
+            closeShopModal() {
+                const modal = document.getElementById('shop-modal');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.add('scale-95');
+            }
+
+            openLevelSelect() {
+                const modal = document.getElementById('level-modal');
+                const grid = document.getElementById('level-grid');
+                grid.innerHTML = '';
+
+                for (let i = 1; i <= Math.max(35, this.maxLevelUnlocked); i++) {
+                    const btn = document.createElement('button');
+                    const isUnlocked = i <= this.maxLevelUnlocked;
+                    const isCurrent = i === this.currentLevel;
+
+                    btn.className = `h-11 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center transition active:scale-90 ${
+                        isCurrent 
+                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30 ring-2 ring-amber-300' 
+                            : isUnlocked 
+                                ? 'bg-slate-100 text-slate-800 hover:bg-slate-200' 
+                                : 'bg-slate-100 text-slate-300 pointer-events-none'
+                    }`;
+
+                    btn.innerHTML = isUnlocked ? i : '<i class="fa-solid fa-lock text-[10px]"></i>';
+                    btn.onclick = () => {
+                        this.loadLevel(i);
+                        this.closeLevelSelect();
+                    };
+                    grid.appendChild(btn);
+                }
+
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.remove('scale-95');
+            }
+
+            closeLevelSelect() {
+                const modal = document.getElementById('level-modal');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.add('scale-95');
+            }
+
+            openVictoryModal() {
+                const modal = document.getElementById('victory-modal');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.remove('scale-95');
+            }
+
+            closeVictoryModal() {
+                const modal = document.getElementById('victory-modal');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.firstElementChild.classList.add('scale-95');
+            }
+
+            nextLevel() {
+                this.loadLevel(this.currentLevel + 1);
+            }
+        }
+
+        let game;
+        window.onload = () => {
+            game = new BirdSortGame();
+        };
+    </script>
+</body>
+</html>
