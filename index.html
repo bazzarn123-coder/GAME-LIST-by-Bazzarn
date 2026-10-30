@@ -124,6 +124,44 @@
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
 
+        .sort-container {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sort-label {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .sort-btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-sub);
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .sort-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-main);
+        }
+
+        .sort-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
         .category-filters {
             display: flex;
             gap: 8px;
@@ -366,6 +404,13 @@
             <div class="search-container-inner">
                 <input type="text" id="searchInput" placeholder="Search games..." autocomplete="off">
             </div>
+            <!-- Sort Options Just Above Categories -->
+            <div class="sort-container">
+                <span class="sort-label">Sort:</span>
+                <button class="sort-btn active" data-sort="default">Default</button>
+                <button class="sort-btn" data-sort="recent">Recently Added</button>
+                <button class="sort-btn" data-sort="az">A to Z</button>
+            </div>
             <div class="category-filters">
                 <button class="category-btn active" data-category="all">All</button>
                 <button class="category-btn" data-category="arcade">Arcade & Action</button>
@@ -504,8 +549,13 @@
         const toolsGrid = document.getElementById('toolsGrid');
         const viewToggleBtn = document.getElementById('viewToggleBtn');
         const categoryBtns = document.querySelectorAll('.category-btn');
+        const sortBtns = document.querySelectorAll('.sort-btn');
 
         let currentCategory = 'all';
+        let currentSort = 'default';
+        let originalNormalOrder = [];
+        let originalToolsOrder = [];
+        let originalFavoritesOrder = [];
 
         // Update button appearance based on which section the card is in
         function updateButtonIcons() {
@@ -572,6 +622,41 @@
             });
         });
 
+        // Apply Sorting logic
+        function applySort() {
+            [normalGrid, toolsGrid, favoritesGrid].forEach(grid => {
+                const cards = Array.from(grid.querySelectorAll('.game-card'));
+                if (currentSort === 'az') {
+                    cards.sort((a, b) => {
+                        const titleA = a.querySelector('.game-title').textContent.toLowerCase();
+                        const titleB = b.querySelector('.game-title').textContent.toLowerCase();
+                        return titleA.localeCompare(titleB);
+                    });
+                } else if (currentSort === 'recent') {
+                    // Reverse the order so newest additions appear at the top
+                    cards.reverse();
+                } else {
+                    // Default order
+                    cards.sort((a, b) => {
+                        let original = originalNormalOrder;
+                        if (grid === toolsGrid) original = originalToolsOrder;
+                        if (grid === favoritesGrid) original = originalFavoritesOrder;
+                        return original.indexOf(a) - original.indexOf(b);
+                    });
+                }
+                cards.forEach(card => grid.appendChild(card));
+            });
+        }
+
+        sortBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                sortBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSort = btn.getAttribute('data-sort');
+                applySort();
+            });
+        });
+
         // Save layout state to LocalStorage
         function saveOrder() {
             const favoritesIds = Array.from(favoritesGrid.querySelectorAll('.game-card')).map(c => c.getAttribute('data-id'));
@@ -584,6 +669,11 @@
 
         // Load layout and preferences on startup
         window.addEventListener('DOMContentLoaded', () => {
+            // Cache original default orders
+            originalNormalOrder = Array.from(normalGrid.children);
+            originalToolsOrder = Array.from(toolsGrid.children);
+            originalFavoritesOrder = Array.from(favoritesGrid.children);
+
             const savedViewMode = localStorage.getItem('bazzarn_view_mode') || 'grid';
             setViewMode(savedViewMode);
 
@@ -611,6 +701,10 @@
                             if (cardMap[id]) toolsGrid.appendChild(cardMap[id]);
                         });
                     }
+                    // Re-cache orders after loading saved layout
+                    originalNormalOrder = Array.from(normalGrid.children);
+                    originalToolsOrder = Array.from(toolsGrid.children);
+                    originalFavoritesOrder = Array.from(favoritesGrid.children);
                 } catch (e) {
                     console.error('Error loading saved layout', e);
                 }
