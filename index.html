@@ -208,6 +208,15 @@
             margin-top: 0;
         }
 
+        .count-badge {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 1px 8px;
+            border-radius: 10px;
+        }
+
         /* Default Grid View (4 columns) */
         .game-grid {
             display: grid;
@@ -404,13 +413,14 @@
             <div class="search-container-inner">
                 <input type="text" id="searchInput" placeholder="Search games..." autocomplete="off">
             </div>
-            <!-- Sort Options Just Above Categories -->
+            <!-- Sort Options -->
             <div class="sort-container">
                 <span class="sort-label">Sort:</span>
                 <button class="sort-btn active" data-sort="default">Default</button>
                 <button class="sort-btn" data-sort="recent">Recently Added</button>
                 <button class="sort-btn" data-sort="az">A to Z</button>
             </div>
+            <!-- Category Filters -->
             <div class="category-filters">
                 <button class="category-btn active" data-category="all">All</button>
                 <button class="category-btn" data-category="arcade">Arcade & Action</button>
@@ -421,7 +431,7 @@
         </div>
 
         <!-- Favorites Section -->
-        <div class="section-header">⭐ Favorites</div>
+        <div class="section-header">⭐ Favorites <span class="count-badge" id="favoritesCount">[0]</span></div>
         <ul class="game-grid" id="favoritesGrid">
             <!-- Initially empty blank slate for favorites -->
         </ul>
@@ -429,7 +439,7 @@
         <hr class="divider">
 
         <!-- Normal Section -->
-        <div class="section-header">📂 All Games</div>
+        <div class="section-header">📂 All Games <span class="count-badge" id="normalCount">[0]</span></div>
         <ul class="game-grid" id="normalGrid">
             <li class="game-card" data-id="cloud-hopper" data-category="arcade"><a href="https://bazzarn123-coder.github.io/Cloud-Hopper/" target="_blank" class="game-link"><span class="icon">☁️</span><span class="game-title">Cloud Hopper</span><span class="badge">Play</span></a><div class="card-controls"><button class="move-section-btn" title="Move to Favorites">⭐</button><div class="arrows-group"><button class="arrow-btn up-btn" title="Move Up">▲</button><button class="arrow-btn down-btn" title="Move Down">▼</button></div></div></li>
             <li class="game-card" data-id="neon-blox" data-category="puzzle"><a href="https://bazzarn123-coder.github.io/Neon-blox/" target="_blank" class="game-link"><span class="icon">🟦</span><span class="game-title">Neon Blox</span><span class="badge">Play</span></a><div class="card-controls"><button class="move-section-btn" title="Move to Favorites">⭐</button><div class="arrows-group"><button class="arrow-btn up-btn" title="Move Up">▲</button><button class="arrow-btn down-btn" title="Move Down">▼</button></div></div></li>
@@ -530,7 +540,7 @@
         <hr class="divider">
 
         <!-- Handy Tools Section -->
-        <div class="section-header">🛠️ Handy Tools</div>
+        <div class="section-header">🛠️ Handy Tools <span class="count-badge" id="toolsCount">[0]</span></div>
         <ul class="game-grid" id="toolsGrid">
             <li class="game-card" data-id="dartboard" data-category="tools"><a href="https://bazzarn123-coder.github.io/Darts-Score-Calculator/" target="_blank" class="game-link"><span class="icon">🎯</span><span class="game-title">Dartboard Calculator</span><span class="badge">Play</span></a><div class="card-controls"><button class="move-section-btn" title="Move to Favorites">⭐</button><div class="arrows-group"><button class="arrow-btn up-btn" title="Move Up">▲</button><button class="arrow-btn down-btn" title="Move Down">▼</button></div></div></li>
             <li class="game-card" data-id="dice-roller" data-category="tools"><a href="https://bazzarn123-coder.github.io/Dice-Throw/" target="_blank" class="game-link"><span class="icon">🎲</span><span class="game-title">Dice Roller</span><span class="badge">Play</span></a><div class="card-controls"><button class="move-section-btn" title="Move to Favorites">⭐</button><div class="arrows-group"><button class="arrow-btn up-btn" title="Move Up">▲</button><button class="arrow-btn down-btn" title="Move Down">▼</button></div></div></li>
@@ -551,11 +561,26 @@
         const categoryBtns = document.querySelectorAll('.category-btn');
         const sortBtns = document.querySelectorAll('.sort-btn');
 
+        const favoritesCountEl = document.getElementById('favoritesCount');
+        const normalCountEl = document.getElementById('normalCount');
+        const toolsCountEl = document.getElementById('toolsCount');
+
         let currentCategory = 'all';
         let currentSort = 'default';
         let originalNormalOrder = [];
         let originalToolsOrder = [];
         let originalFavoritesOrder = [];
+
+        // Update section item counts dynamically based on visibility/filters
+        function updateCounts() {
+            const favVisible = Array.from(favoritesGrid.querySelectorAll('.game-card')).filter(c => c.style.display !== 'none').length;
+            const normVisible = Array.from(normalGrid.querySelectorAll('.game-card')).filter(c => c.style.display !== 'none').length;
+            const toolsVisible = Array.from(toolsGrid.querySelectorAll('.game-card')).filter(c => c.style.display !== 'none').length;
+
+            favoritesCountEl.textContent = `[${favVisible}]`;
+            normalCountEl.textContent = `[${normVisible}]`;
+            toolsCountEl.textContent = `[${toolsVisible}]`;
+        }
 
         // Update button appearance based on which section the card is in
         function updateButtonIcons() {
@@ -569,6 +594,7 @@
                     btn.title = 'Move to Favorites';
                 }
             });
+            updateCounts();
         }
 
         // Toggle View Mode (Grid vs List)
@@ -609,6 +635,7 @@
                     card.style.display = 'none';
                 }
             });
+            updateCounts();
         }
 
         searchInput.addEventListener('input', filterCards);
@@ -633,10 +660,8 @@
                         return titleA.localeCompare(titleB);
                     });
                 } else if (currentSort === 'recent') {
-                    // Reverse the order so newest additions appear at the top
                     cards.reverse();
                 } else {
-                    // Default order
                     cards.sort((a, b) => {
                         let original = originalNormalOrder;
                         if (grid === toolsGrid) original = originalToolsOrder;
@@ -646,6 +671,7 @@
                 }
                 cards.forEach(card => grid.appendChild(card));
             });
+            updateCounts();
         }
 
         sortBtns.forEach(btn => {
@@ -669,7 +695,6 @@
 
         // Load layout and preferences on startup
         window.addEventListener('DOMContentLoaded', () => {
-            // Cache original default orders
             originalNormalOrder = Array.from(normalGrid.children);
             originalToolsOrder = Array.from(toolsGrid.children);
             originalFavoritesOrder = Array.from(favoritesGrid.children);
@@ -701,7 +726,6 @@
                             if (cardMap[id]) toolsGrid.appendChild(cardMap[id]);
                         });
                     }
-                    // Re-cache orders after loading saved layout
                     originalNormalOrder = Array.from(normalGrid.children);
                     originalToolsOrder = Array.from(toolsGrid.children);
                     originalFavoritesOrder = Array.from(favoritesGrid.children);
